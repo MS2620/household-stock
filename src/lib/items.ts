@@ -1,10 +1,9 @@
-import { and, eq, ilike, sql } from "drizzle-orm";
+import { and, eq, gt, ilike, lte, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
   households,
   inventoryItems,
   shoppingItems,
-  itemStatus,
 } from "@/db/schema";
 
 export type CreateItemInput = {
@@ -101,8 +100,11 @@ export async function getLowStockItems() {
     .where(
       and(
         eq(inventoryItems.householdId, householdId),
-        eq(inventoryItems.lowStockThreshold, sql`> 0`),
-        eq(inventoryItems.stockQuantity, sql`<= ${inventoryItems.lowStockThreshold}`),
+        gt(inventoryItems.lowStockThreshold, 0),
+        lte(
+          inventoryItems.stockQuantity,
+          inventoryItems.lowStockThreshold,
+        ),
       ),
     )
     .orderBy(sql`${inventoryItems.updatedAt} DESC`);
@@ -210,16 +212,17 @@ export async function markItemBought(id: number) {
     });
   }
 
-  const [updated] = await db
-    .update(shoppingItems)
-    .set({
-      status: "bought",
-      updatedAt: now,
-    })
-    .where(eq(shoppingItems.id, id))
+  const [deleted] = await db
+    .delete(shoppingItems)
+    .where(
+      and(
+        eq(shoppingItems.id, id),
+        eq(shoppingItems.householdId, householdId),
+      ),
+    )
     .returning();
 
-  return updated;
+  return deleted ?? null;
 }
 
 export async function updateInventoryItem(
@@ -316,19 +319,25 @@ export async function consumeInventory(id: number, amount = 1) {
       .limit(1);
 
     if (!existingShopping) {
-      await db.insert(shoppingItems).values({
-        householdId,
-        name: item.name,
-        category: item.category,
-        quantity: 1,
-        unit: item.unit,
-        status: "shopping",
-        stockQuantity: 0,
-        lowStockThreshold: item.lowStockThreshold,
-        barcode: item.barcode,
-      });
+      const [createdShoppingItem] = await db
+        .insert(shoppingItems)
+        .values({
+          householdId,
+          name: item.name,
+          category: item.category,
+          quantity: 1,
+          unit: item.unit,
+          status: "shopping",
+          stockQuantity: 0,
+          lowStockThreshold: item.lowStockThreshold,
+          barcode: item.barcode,
+        })
+        .onConflictDoNothing({
+          target: [shoppingItems.householdId, shoppingItems.name],
+        })
+        .returning();
 
-      automaticallyAddedToShoppingList = true;
+      automaticallyAddedToShoppingList = Boolean(createdShoppingItem);
     }
   }
 
