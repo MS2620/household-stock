@@ -1,22 +1,11 @@
-import { promises as fs } from "node:fs";
-import path from "node:path";
-
-export type ItemStatus = "shopping" | "bought" | "archived";
-
-export type ShoppingItem = {
-  id: number;
-  name: string;
-  category: string;
-  quantity: number;
-  unit: string;
-  status: ItemStatus;
-  isLowStock: boolean;
-  stockQuantity: number;
-  lowStockThreshold: number;
-  barcode?: string;
-  createdAt: string;
-  updatedAt: string;
-};
+import { and, eq, ilike, sql } from "drizzle-orm";
+import { db } from "@/db";
+import {
+  households,
+  inventoryItems,
+  shoppingItems,
+  itemStatus,
+} from "@/db/schema";
 
 export type CreateItemInput = {
   name: string;
@@ -37,173 +26,199 @@ export type UpdateInventoryItemInput = {
   barcode?: string;
 };
 
-const dataDirectory = path.join(process.cwd(), "data");
-const dataFile = path.join(dataDirectory, "household-stock.json");
+const DEFAULT_HOUSEHOLD_NAME = "Default Household";
 
-const initialData: ShoppingItem[] = [];
+async function getDefaultHouseholdId() {
+  const [household] = await db
+    .select({ id: households.id })
+    .from(households)
+    .where(eq(households.name, DEFAULT_HOUSEHOLD_NAME))
+    .limit(1);
+
+  if (!household) {
+    throw new Error("Default household not found. Run the seed script.");
+  }
+
+  return household.id;
+}
 
 function normaliseName(name: string) {
   return name.trim().replace(/\s+/g, " ");
 }
 
-async function ensureDataFile() {
-  await fs.mkdir(dataDirectory, { recursive: true });
-
-  try {
-    await fs.access(dataFile);
-  } catch {
-    await fs.writeFile(dataFile, JSON.stringify(initialData, null, 2), "utf8");
-  }
-}
-
-async function readItems(): Promise<ShoppingItem[]> {
-  await ensureDataFile();
-
-  const rawData = await fs.readFile(dataFile, "utf8");
-
-  try {
-    const parsed = JSON.parse(rawData);
-
-    if (!Array.isArray(parsed)) {
-      throw new Error("Inventory data must be an array.");
-    }
-
-    return parsed as ShoppingItem[];
-  } catch {
-    await fs.writeFile(dataFile, JSON.stringify(initialData, null, 2), "utf8");
-    return [];
-  }
-}
-
-async function writeItems(items: ShoppingItem[]) {
-  await ensureDataFile();
-
-  const temporaryFile = `${dataFile}.tmp`;
-
-  await fs.writeFile(temporaryFile, JSON.stringify(items, null, 2), "utf8");
-  await fs.rename(temporaryFile, dataFile);
-}
-
-function nextId(items: ShoppingItem[]) {
-  return items.reduce((highestId, item) => Math.max(highestId, item.id), 0) + 1;
-}
-
 export async function getShoppingItems() {
-  const items = await readItems();
+  const householdId = await getDefaultHouseholdId();
 
-  return items
-    .filter((item) => item.status === "shopping")
-    .sort(
-      (left, right) =>
-        new Date(right.createdAt).getTime() -
-        new Date(left.createdAt).getTime(),
-    );
+  const items = await db
+    .select()
+    .from(shoppingItems)
+    .where(
+      and(
+        eq(shoppingItems.householdId, householdId),
+        eq(shoppingItems.status, "shopping"),
+      ),
+    )
+    .orderBy(sql`${shoppingItems.createdAt} DESC`);
+
+  return items;
 }
 
 export async function getBoughtItems() {
-  const items = await readItems();
+  const householdId = await getDefaultHouseholdId();
 
-  return items
-    .filter((item) => item.status === "bought")
-    .sort(
-      (left, right) =>
-        new Date(right.updatedAt).getTime() -
-        new Date(left.updatedAt).getTime(),
-    );
+  const items = await db
+    .select()
+    .from(inventoryItems)
+    .where(eq(inventoryItems.householdId, householdId))
+    .orderBy(sql`${inventoryItems.updatedAt} DESC`);
+
+  return items;
 }
 
 export async function getBoughtItemById(id: number) {
-  const items = await readItems();
+  const householdId = await getDefaultHouseholdId();
 
-  return (
-    items.find((item) => item.id === id && item.status === "bought") ?? null
-  );
+  const [item] = await db
+    .select()
+    .from(inventoryItems)
+    .where(
+      and(
+        eq(inventoryItems.id, id),
+        eq(inventoryItems.householdId, householdId),
+      ),
+    )
+    .limit(1);
+
+  return item ?? null;
 }
 
 export async function getLowStockItems() {
-  const items = await readItems();
+  const householdId = await getDefaultHouseholdId();
 
-  return items
-    .filter(
-      (item) =>
-        item.status === "bought" &&
-        item.lowStockThreshold > 0 &&
-        item.stockQuantity <= item.lowStockThreshold,
+  const items = await db
+    .select()
+    .from(inventoryItems)
+    .where(
+      and(
+        eq(inventoryItems.householdId, householdId),
+        eq(inventoryItems.lowStockThreshold, sql`> 0`),
+        eq(inventoryItems.stockQuantity, sql`<= ${inventoryItems.lowStockThreshold}`),
+      ),
     )
-    .sort(
-      (left, right) =>
-        new Date(right.updatedAt).getTime() -
-        new Date(left.updatedAt).getTime(),
-    );
+    .orderBy(sql`${inventoryItems.updatedAt} DESC`);
+
+  return items;
 }
 
 export async function createOrIncreaseShoppingItem(input: CreateItemInput) {
-  const items = await readItems();
+  const householdId = await getDefaultHouseholdId();
   const name = normaliseName(input.name);
-  const now = new Date().toISOString();
+  const now = new Date();
 
-  const existingIndex = items.findIndex(
-    (item) => item.name.toLowerCase() === name.toLowerCase(),
-  );
+  const [existing] = await db
+    .select()
+    .from(shoppingItems)
+    .where(
+      and(
+        eq(shoppingItems.householdId, householdId),
+        ilike(shoppingItems.name, name),
+      ),
+    )
+    .limit(1);
 
-  if (existingIndex >= 0) {
-    const existing = items[existingIndex];
-
-    const updated: ShoppingItem = {
-      ...existing,
-      quantity: existing.quantity + (input.quantity ?? 1),
-      status: "shopping",
-      updatedAt: now,
-    };
-
-    items[existingIndex] = updated;
-    await writeItems(items);
+  if (existing) {
+    const [updated] = await db
+      .update(shoppingItems)
+      .set({
+        quantity: existing.quantity + (input.quantity ?? 1),
+        status: "shopping",
+        updatedAt: now,
+      })
+      .where(eq(shoppingItems.id, existing.id))
+      .returning();
 
     return updated;
   }
 
-  const created: ShoppingItem = {
-    id: nextId(items),
-    name,
-    category: input.category ?? "Other",
-    quantity: input.quantity ?? 1,
-    unit: input.unit ?? "item",
-    status: "shopping",
-    isLowStock: false,
-    stockQuantity: input.stockQuantity ?? 0,
-    lowStockThreshold: input.lowStockThreshold ?? 0,
-    barcode: input.barcode,
-    createdAt: now,
-    updatedAt: now,
-  };
-
-  items.push(created);
-  await writeItems(items);
+  const [created] = await db
+    .insert(shoppingItems)
+    .values({
+      householdId,
+      name,
+      category: input.category ?? "Other",
+      quantity: input.quantity ?? 1,
+      unit: input.unit ?? "item",
+      status: "shopping",
+      isLowStock: false,
+      stockQuantity: input.stockQuantity ?? 0,
+      lowStockThreshold: input.lowStockThreshold ?? 0,
+      barcode: input.barcode,
+    })
+    .returning();
 
   return created;
 }
 
 export async function markItemBought(id: number) {
-  const items = await readItems();
-  const index = items.findIndex((item) => item.id === id);
+  const householdId = await getDefaultHouseholdId();
 
-  if (index === -1) {
+  const [item] = await db
+    .select()
+    .from(shoppingItems)
+    .where(
+      and(
+        eq(shoppingItems.id, id),
+        eq(shoppingItems.householdId, householdId),
+      ),
+    )
+    .limit(1);
+
+  if (!item) {
     return null;
   }
 
-  const item = items[index];
-  const now = new Date().toISOString();
+  const now = new Date();
 
-  const updated: ShoppingItem = {
-    ...item,
-    status: "bought",
-    stockQuantity: item.stockQuantity + item.quantity,
-    isLowStock: false,
-    updatedAt: now,
-  };
+  // Ensure a matching inventory item exists
+  const [existingInventory] = await db
+    .select()
+    .from(inventoryItems)
+    .where(
+      and(
+        eq(inventoryItems.householdId, householdId),
+        ilike(inventoryItems.name, item.name),
+      ),
+    )
+    .limit(1);
 
-  items[index] = updated;
-  await writeItems(items);
+  if (existingInventory) {
+    await db
+      .update(inventoryItems)
+      .set({
+        stockQuantity: existingInventory.stockQuantity + item.quantity,
+        updatedAt: now,
+      })
+      .where(eq(inventoryItems.id, existingInventory.id));
+  } else {
+    await db.insert(inventoryItems).values({
+      householdId,
+      name: item.name,
+      category: item.category,
+      unit: item.unit,
+      stockQuantity: item.quantity,
+      lowStockThreshold: item.lowStockThreshold,
+      barcode: item.barcode,
+    });
+  }
+
+  const [updated] = await db
+    .update(shoppingItems)
+    .set({
+      status: "bought",
+      updatedAt: now,
+    })
+    .where(eq(shoppingItems.id, id))
+    .returning();
 
   return updated;
 }
@@ -212,90 +227,98 @@ export async function updateInventoryItem(
   id: number,
   input: UpdateInventoryItemInput,
 ) {
-  const items = await readItems();
-  const index = items.findIndex(
-    (item) => item.id === id && item.status === "bought",
-  );
+  const householdId = await getDefaultHouseholdId();
+  const now = new Date();
 
-  if (index === -1) {
-    return null;
-  }
+  const [updated] = await db
+    .update(inventoryItems)
+    .set({
+      name: normaliseName(input.name),
+      category: input.category.trim(),
+      unit: input.unit.trim(),
+      stockQuantity: input.stockQuantity,
+      lowStockThreshold: input.lowStockThreshold,
+      barcode: input.barcode?.trim() || undefined,
+      updatedAt: now,
+    })
+    .where(
+      and(
+        eq(inventoryItems.id, id),
+        eq(inventoryItems.householdId, householdId),
+      ),
+    )
+    .returning();
 
-  const now = new Date().toISOString();
-  const stockQuantity = input.stockQuantity;
-  const lowStockThreshold = input.lowStockThreshold;
-
-  const updated: ShoppingItem = {
-    ...items[index],
-    name: normaliseName(input.name),
-    category: input.category.trim(),
-    unit: input.unit.trim(),
-    stockQuantity,
-    lowStockThreshold,
-    barcode: input.barcode?.trim() || undefined,
-    isLowStock:
-      lowStockThreshold > 0 && stockQuantity <= lowStockThreshold,
-    updatedAt: now,
-  };
-
-  items[index] = updated;
-  await writeItems(items);
-
-  return updated;
+  return updated ?? null;
 }
 
 export async function deleteItem(id: number) {
-  const items = await readItems();
-  const item = items.find((entry) => entry.id === id);
+  const householdId = await getDefaultHouseholdId();
+
+  const [deleted] = await db
+    .delete(shoppingItems)
+    .where(
+      and(
+        eq(shoppingItems.id, id),
+        eq(shoppingItems.householdId, householdId),
+      ),
+    )
+    .returning();
+
+  return deleted ?? null;
+}
+
+export async function consumeInventory(id: number, amount = 1) {
+  const householdId = await getDefaultHouseholdId();
+  const now = new Date();
+
+  const [item] = await db
+    .select()
+    .from(inventoryItems)
+    .where(
+      and(
+        eq(inventoryItems.id, id),
+        eq(inventoryItems.householdId, householdId),
+      ),
+    )
+    .limit(1);
 
   if (!item) {
     return null;
   }
 
-  await writeItems(items.filter((entry) => entry.id !== id));
-
-  return item;
-}
-
-export async function consumeInventory(id: number, amount = 1) {
-  const items = await readItems();
-  const index = items.findIndex(
-    (item) => item.id === id && item.status === "bought",
-  );
-
-  if (index === -1) {
-    return null;
-  }
-
-  const item = items[index];
   const stockQuantity = Math.max(0, item.stockQuantity - amount);
   const isLowStock =
     item.lowStockThreshold > 0 &&
     stockQuantity <= item.lowStockThreshold;
 
-  const now = new Date().toISOString();
-
-  const updatedInventoryItem: ShoppingItem = {
-    ...item,
-    stockQuantity,
-    isLowStock,
-    updatedAt: now,
-  };
-
-  items[index] = updatedInventoryItem;
+  const [updatedInventory] = await db
+    .update(inventoryItems)
+    .set({
+      stockQuantity,
+      updatedAt: now,
+    })
+    .where(eq(inventoryItems.id, id))
+    .returning();
 
   let automaticallyAddedToShoppingList = false;
 
   if (isLowStock) {
-    const itemAlreadyOnShoppingList = items.some(
-      (entry) =>
-        entry.status === "shopping" &&
-        entry.name.toLowerCase() === item.name.toLowerCase(),
-    );
+    const [existingShopping] = await db
+      .select()
+      .from(shoppingItems)
+      .where(
+        and(
+          eq(shoppingItems.householdId, householdId),
+          eq(shoppingItems.status, "shopping"),
+          ilike(shoppingItems.name, item.name),
+        ),
+      )
+      .limit(1);
 
-    if (!itemAlreadyOnShoppingList) {
-      const shoppingItem: ShoppingItem = {
-        id: nextId(items),
+    if (!existingShopping) {
+      await db.insert(shoppingItems).values({
+        householdId,
         name: item.name,
         category: item.category,
         quantity: 1,
@@ -305,19 +328,14 @@ export async function consumeInventory(id: number, amount = 1) {
         stockQuantity: 0,
         lowStockThreshold: item.lowStockThreshold,
         barcode: item.barcode,
-        createdAt: now,
-        updatedAt: now,
-      };
+      });
 
-      items.push(shoppingItem);
       automaticallyAddedToShoppingList = true;
     }
   }
 
-  await writeItems(items);
-
   return {
-    item: updatedInventoryItem,
+    item: updatedInventory,
     automaticallyAddedToShoppingList,
   };
 }
