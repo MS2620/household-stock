@@ -1,0 +1,29 @@
+name: Home Assistant integration
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - home-assistant-integration
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: Compile integration
+        run: python -m compileall -q custom_components/household_stock
+      - name: Validate dashboard card
+        run: node --check custom_components/household_stock/www/household-stock-card.js
+      - name: Install test dependencies
+        run: python -m pip install -r requirements_test.txt
+      - name: Static validation
+        run: ruff check --select E9,F custom_components/household_stock
+      - name: Run model tests
+        run: PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 pytest -q --noconftest tests/test_models.py
+      - name: Run integration test
+        run: pytest -q tests/test_integration.py::test_add_item_persists_defaults
