@@ -141,7 +141,7 @@ class HouseholdStockCard extends HTMLElement {
 
   _categories() {
     if (!this._hass) return [];
-    return [...new Set(this._items().map((item) => item.category))].sort((a, b) => a.localeCompare(b));
+    return [...new Set(this._allItems().map((item) => item.category))].sort((a, b) => a.localeCompare(b));
   }
 
   _formatQuantity(value) {
@@ -183,7 +183,8 @@ class HouseholdStockCard extends HTMLElement {
         .title { font-size: 20px; font-weight: 500; }
         .summary { color: var(--secondary-text-color); font-size: 13px; margin-top: 4px; }
         .toolbar {
-          display: flex;
+          display: grid;
+          grid-template-columns: minmax(140px, 1fr) auto auto auto;
           gap: 8px;
           padding: 0 16px 12px;
         }
@@ -393,9 +394,10 @@ class HouseholdStockCard extends HTMLElement {
 
   _itemTemplate(item) {
     const editing = this._editing === item.itemId;
+    const compact = Boolean(this._config.compact);
     const lowBadge = item.lowStock ? '<span class="badge">LOW</span>' : "";
     return `
-      <div class="item ${item.lowStock ? "low" : ""}" data-item-id="${this._esc(item.itemId)}">
+      <div class="item ${item.lowStock ? "low" : ""} ${compact ? "compact" : ""}" data-item-id="${this._esc(item.itemId)}">
         <div class="row">
           <div class="item-name">${this._esc(item.name)}${lowBadge}</div>
           <div class="quantity-control">
