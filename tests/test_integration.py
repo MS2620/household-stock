@@ -188,3 +188,17 @@ async def test_delete_item_removes_item(hass: HomeAssistant) -> None:
             {ATTR_ITEM_ID: item_id},
             blocking=True,
         )
+
+
+@pytest.mark.usefixtures("stock_entry")
+async def test_item_sensor_name_is_not_duplicated(hass: HomeAssistant) -> None:
+    await _add_item(hass, "Milk")
+
+    states = [
+        state
+        for state in hass.states.async_all()
+        if state.attributes.get("item_id")
+    ]
+    quantity_states = [state for state in states if state.entity_id.startswith("sensor.")]
+    assert len(quantity_states) == 1
+    assert quantity_states[0].name == "Milk Quantity"
