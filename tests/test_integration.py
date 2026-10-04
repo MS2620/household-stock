@@ -1,7 +1,7 @@
 from unittest.mock import AsyncMock
 
 import pytest
-from homeassistant.core import HomeAssistant
+from homeassistant.config_entries import SOURCE_USER\nfrom homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 
 from custom_components.household_stock.const import (
@@ -236,3 +236,26 @@ async def test_all_inventory_services_are_registered(hass: HomeAssistant) -> Non
         SERVICE_DELETE_ITEM,
     ):
         assert hass.services.has_service(DOMAIN, service)
+
+
+async def test_config_flow_creates_single_entry(hass: HomeAssistant, enable_custom_integrations) -> None:
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": SOURCE_USER},
+    )
+    assert result["type"] == "form"
+    assert result["step_id"] == "user"
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={},
+    )
+    assert result["type"] == "create_entry"
+    assert result["title"] == "Household Stock"
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": SOURCE_USER},
+    )
+    assert result["type"] == "abort"
+    assert result["reason"] == "already_configured"
