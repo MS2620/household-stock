@@ -49,21 +49,27 @@ class HouseholdStockOptionsFlowHandler(config_entries.OptionsFlow):
         errors: dict[str, str] = {}
 
         if user_input is not None:
+            service_data = {
+                ATTR_NAME: user_input[ATTR_NAME],
+                ATTR_CATEGORY: user_input[ATTR_CATEGORY],
+                ATTR_UNIT: user_input[ATTR_UNIT],
+                ATTR_QUANTITY: user_input[ATTR_QUANTITY],
+                ATTR_LOW_STOCK_THRESHOLD: user_input[ATTR_LOW_STOCK_THRESHOLD],
+                ATTR_AUTO_ADD_TO_SHOPPING_LIST: user_input[
+                    ATTR_AUTO_ADD_TO_SHOPPING_LIST
+                ],
+            }
+
+            for field in (ATTR_BARCODE, ATTR_LOCATION, "shopping_list_item"):
+                value = user_input.get(field)
+                if value:
+                    service_data[field] = value
+
             try:
                 await self.hass.services.async_call(
                     DOMAIN,
                     SERVICE_ADD_ITEM,
-                    {
-                        ATTR_NAME: user_input[ATTR_NAME],
-                        ATTR_CATEGORY: user_input[ATTR_CATEGORY],
-                        ATTR_UNIT: user_input[ATTR_UNIT],
-                        ATTR_QUANTITY: user_input[ATTR_QUANTITY],
-                        ATTR_LOW_STOCK_THRESHOLD: user_input[ATTR_LOW_STOCK_THRESHOLD],
-                        ATTR_BARCODE: user_input.get(ATTR_BARCODE),
-                        ATTR_LOCATION: user_input.get(ATTR_LOCATION),
-                        "shopping_list_item": user_input.get("shopping_list_item"),
-                        ATTR_AUTO_ADD_TO_SHOPPING_LIST: user_input[ATTR_AUTO_ADD_TO_SHOPPING_LIST],
-                    },
+                    service_data,
                     blocking=True,
                 )
             except Exception:  # noqa: BLE001
