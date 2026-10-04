@@ -1,4 +1,3 @@
-import pytest
 import pytest_asyncio
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntryState
