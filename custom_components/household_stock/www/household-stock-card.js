@@ -5,6 +5,9 @@ class HouseholdStockCard extends HTMLElement {
     this._config = {};
     this._hass = null;
     this._search = "";
+    this._category = "all";
+    this._sort = "name";
+    this._lowOnly = false;
     this._showAdd = false;
     this._editing = null;
     this._renderScheduled = false;
@@ -14,8 +17,11 @@ class HouseholdStockCard extends HTMLElement {
     this._config = {
       title: "Household Stock",
       sort: "name",
+      compact: false,
+      group_by_category: false,
       ...config,
     };
+    this._sort = this._config.sort || "name";
     if (this._hass) this._render();
   }
 
@@ -63,12 +69,19 @@ class HouseholdStockCard extends HTMLElement {
                 { value: "name", label: "Name" },
                 { value: "quantity", label: "Quantity" },
                 { value: "low_stock", label: "Low stock first" },
+                { value: "category", label: "Category" },
               ],
             },
           },
         },
+        { name: "compact", selector: { boolean: {} } },
+        { name: "group_by_category", selector: { boolean: {} } },
       ],
     };
+  }
+
+  getGridOptions() {
+    return { rows: 5, min_rows: 3, columns: 6, min_columns: 3, max_columns: 12 };
   }
 
   _items() {
@@ -97,7 +110,7 @@ class HouseholdStockCard extends HTMLElement {
       }));
 
     const query = this._search.trim().toLowerCase();
-    const filtered = query
+    let filtered = query
       ? items.filter(
           (item) =>
             item.name.toLowerCase().includes(query) ||
@@ -107,13 +120,33 @@ class HouseholdStockCard extends HTMLElement {
         )
       : items;
 
+    if (this._category !== "all") {
+      filtered = filtered.filter((item) => item.category === this._category);
+    }
+    if (this._lowOnly) {
+      filtered = filtered.filter((item) => item.lowStock);
+    }
+
     return filtered.sort((a, b) => {
       if (this._config.sort === "quantity") return a.quantity - b.quantity;
       if (this._config.sort === "low_stock") {
         return Number(b.lowStock) - Number(a.lowStock) || a.name.localeCompare(b.name);
       }
+      if (this._config.sort === "category") {
+        return a.category.localeCompare(b.category) || a.name.localeCompare(b.name);
+      }
       return a.name.localeCompare(b.name);
     });
+  }
+
+  _categories() {
+    if (!this._hass) return [];
+    return [...new Set(this._items().map((item) => item.category))].sort((a, b) => a.localeCompare(b));
+  }
+
+  _formatQuantity(value) {
+    const number = Number(value);
+    return Number.isInteger(number) ? String(number) : String(Number(number.toFixed(2)));
   }
 
   async _call(service, data) {
@@ -165,7 +198,13 @@ class HouseholdStockCard extends HTMLElement {
           color: var(--primary-text-color);
           font: inherit;
         }
-        .search { flex: 1; }
+        .search { min-width: 0; }
+        .quantity-control { display: flex; align-items: center; gap: 4px; }
+        .quantity-input { width: 68px; min-height: 36px; padding: 4px; text-align: center; font-variant-numeric: tabular-nums; }
+        .unit { color: var(--secondary-text-color); font-size: 12px; white-space: nowrap; }
+        .filter-active { background: var(--primary-color) !important; color: var(--text-primary-color) !important; }
+        .category-heading { padding: 12px 8px 6px; color: var(--secondary-text-color); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+        @media (max-width: 600px) { .toolbar { display: grid; grid-template-columns: 1fr 1fr; } .toolbar .search { grid-column: 1 / -1; } .actions button { flex: 1; } }
         button {
           min-height: 40px;
           border: 0;
@@ -237,11 +276,22 @@ class HouseholdStockCard extends HTMLElement {
           <button id="add">Add item</button>
         </div>
         <div class="toolbar">
-          <input class="search" id="search" placeholder="Search inventory" value="${this._esc(this._search)}">
+          <input class="search" id="search" placeholder="Search inventory" value="${this._esc(this._search)}" aria-label="Search inventory">
+          <select id="category" aria-label="Filter category">
+            <option value="all">All categories</option>
+            ${this._categories().map((category) => `<option value="${this._esc(category)}" ${this._category === category ? "selected" : ""}>${this._esc(category)}</option>`).join("")}
+          </select>
+          <select id="sort" aria-label="Sort inventory">
+            <option value="name" ${this._config.sort === "name" ? "selected" : ""}>Name</option>
+            <option value="quantity" ${this._config.sort === "quantity" ? "selected" : ""}>Quantity</option>
+            <option value="low_stock" ${this._config.sort === "low_stock" ? "selected" : ""}>Low stock</option>
+            <option value="category" ${this._config.sort === "category" ? "selected" : ""}>Category</option>
+          </select>
+          <button id="low-only" class="secondary ${this._lowOnly ? "filter-active" : ""}" aria-pressed="${this._lowOnly}">Low stock</button>
         </div>
         ${this._showAdd ? this._addForm() : ""}
         <div class="items">
-          ${items.length ? items.map((item) => this._itemTemplate(item)).join("") : '<div class="empty">No inventory items found.</div>'}
+          ${items.length ? this._renderItems(items) : '<div class="empty">No inventory items found.</div>'}
         </div>
       </ha-card>
     `;
@@ -259,8 +309,34 @@ class HouseholdStockCard extends HTMLElement {
       if (input) input.selectionStart = input.selectionEnd = this._search.length;
     });
 
+    this.shadowRoot.getElementById("category")?.addEventListener("change", (event) => {
+      this._category = event.target.value;
+      this._render();
+    });
+    this.shadowRoot.getElementById("sort")?.addEventListener("change", (event) => {
+      this._config.sort = event.target.value;
+      this._sort = event.target.value;
+      this._render();
+    });
+    this.shadowRoot.getElementById("low-only")?.addEventListener("click", () => {
+      this._lowOnly = !this._lowOnly;
+      this._render();
+    });
+
     this._wireAddForm();
     this._wireItems();
+  }
+
+  _renderItems(items) {
+    if (!this._config.group_by_category) return items.map((item) => this._itemTemplate(item)).join("");
+    const groups = new Map();
+    items.forEach((item) => {
+      if (!groups.has(item.category)) groups.set(item.category, []);
+      groups.get(item.category).push(item);
+    });
+    return [...groups.entries()].map(([category, group]) =>
+      '<div class="category-heading">' + this._esc(category) + "</div>" + group.map((item) => this._itemTemplate(item)).join("")
+    ).join("");
   }
 
   _addForm() {
@@ -322,7 +398,12 @@ class HouseholdStockCard extends HTMLElement {
       <div class="item ${item.lowStock ? "low" : ""}" data-item-id="${this._esc(item.itemId)}">
         <div class="row">
           <div class="item-name">${this._esc(item.name)}${lowBadge}</div>
-          <div class="quantity">${this._esc(item.quantity)} ${this._esc(item.unit)}</div>
+          <div class="quantity-control">
+            <button class="secondary icon" data-action="consume" title="Decrease quantity" aria-label="Decrease ${this._esc(item.name)}">−</button>
+            <input class="quantity-input" data-action="quantity" type="number" min="0" step="any" value="${this._esc(item.quantity)}" aria-label="Quantity for ${this._esc(item.name)}">
+            <button class="secondary icon" data-action="restock" title="Increase quantity" aria-label="Increase ${this._esc(item.name)}">+</button>
+            <span class="unit">${this._esc(item.unit)}</span>
+          </div>
         </div>
         <div class="meta">
           ${this._esc(item.category)}
@@ -363,6 +444,15 @@ class HouseholdStockCard extends HTMLElement {
     this.shadowRoot.querySelectorAll(".item").forEach((element) => {
       const itemId = element.dataset.itemId;
       element.querySelectorAll("[data-action]").forEach((button) => {
+        if (button.dataset.action === "quantity") {
+          button.addEventListener("change", async () => {
+            const quantity = Number(button.value);
+            if (!Number.isFinite(quantity) || quantity < 0) return;
+            await this._call("set_quantity", { item_id: itemId, quantity });
+            this._render();
+          });
+          return;
+        }
         button.addEventListener("click", async () => {
           const action = button.dataset.action;
           if (action === "consume") {
