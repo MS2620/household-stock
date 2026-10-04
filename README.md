@@ -21,7 +21,7 @@ It provides:
 - Diagnostics
 - Add inventory items from the integration's Configure screen
 - Native Household Stock Lovelace dashboard card for day-to-day inventory management
-- Automated Python model tests and integration syntax validation
+- Automated Home Assistant integration tests, model tests and Python/JavaScript validation
 
 ### Install for development
 
@@ -54,6 +54,22 @@ sort: name
 ```
 
 The card supports searching, adding items, consuming/restocking by one unit, editing item metadata and quantity, and deleting items. It talks directly to the Home Assistant `household_stock` services; the Next.js application is not involved.
+
+### Development tests
+
+Install the test dependencies with:
+
+```bash
+python -m pip install -r requirements_test.txt
+```
+
+Run the complete test suite:
+
+```bash
+pytest -q
+```
+
+The CI workflow runs the same test suite, plus Python compilation, Ruff static validation and JavaScript syntax validation.
 
 ### Inventory flow
 
