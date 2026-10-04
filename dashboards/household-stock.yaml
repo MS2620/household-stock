@@ -1,0 +1,29 @@
+title: Household Stock
+views:
+  - title: Overview
+    path: household-stock
+    icon: mdi:package-variant
+    type: sections
+    max_columns: 3
+    sections:
+      - title: Overview
+        cards:
+          - type: tile
+            entity: sensor.household_stock_items
+            name: Total inventory items
+            icon: mdi:package-variant
+          - type: markdown
+            content: >
+              ## Household Stock
+              Use the inventory card below to search, filter, update quantities,
+              and manage your household items.
+      - title: Inventory
+        cards:
+          - type: custom:household-stock-card
+            title: Household Stock
+            group_by_category: true
+      - title: Shopping
+        cards:
+          - type: todo-list
+            entity: todo.shopping_list
+            title: Shopping list
