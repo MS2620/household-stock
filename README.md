@@ -1,10 +1,10 @@
 # Household Stock
 
-Household Stock started as a Next.js application for managing household inventory. The repository now also contains a native Home Assistant integration.
+A native Home Assistant integration for managing household inventory.
 
 ## Home Assistant integration
 
-The native integration lives in `custom_components/household_stock` and stores inventory directly in Home Assistant.
+The integration lives in `custom_components/household_stock` and stores inventory directly in Home Assistant.
 
 It provides:
 
@@ -20,18 +20,18 @@ It provides:
 - Automatic integration with Home Assistant's shopping list
 - Diagnostics
 - Add inventory items from the integration's Configure screen
-- Native Household Stock Lovelace dashboard card for day-to-day inventory management
+- Native Household Stock Lovelace dashboard card
 - Automated Home Assistant integration tests, model tests and Python/JavaScript validation
 
 ### Install for development
 
 Copy the `custom_components/household_stock` directory into your Home Assistant `config/custom_components` directory, restart Home Assistant, then add **Household Stock** from **Settings → Devices & services → Add integration**.
 
-The integration does not require the Next.js application, PostgreSQL, Docker or an external API.
+The integration is self-contained. It does not require PostgreSQL, Docker, Node.js, or an external API.
 
 ### Add an inventory item
 
-After installing the integration, go to **Settings → Devices & services → Household Stock → Configure**. The Configure screen opens an **Add inventory item** form where you can enter the item name, category, unit, quantity, low-stock threshold, barcode, location and shopping-list settings. This creates the item immediately in Home Assistant.
+Go to **Settings → Devices & services → Household Stock → Configure**. The Configure screen opens an **Add inventory item** form where you can enter the item name, category, unit, quantity, low-stock threshold, barcode, location and shopping-list settings.
 
 ### Household Stock dashboard card
 
@@ -53,7 +53,7 @@ title: Household Stock
 sort: name
 ```
 
-The card supports searching, adding items, consuming/restocking by one unit, editing item metadata and quantity, and deleting items. It talks directly to the Home Assistant `household_stock` services; the Next.js application is not involved.
+The card supports searching, adding items, consuming/restocking by one unit, editing item metadata and quantity, and deleting items. It talks directly to Home Assistant services.
 
 ### Development tests
 
@@ -90,25 +90,3 @@ Inventory
           ▼
        Restocked
 ```
-
-## Original web application
-
-The original web application remains in the repository for development and historical use.
-
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-
-## Getting Started
-
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open http://localhost:3000 to view the application.
