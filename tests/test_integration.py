@@ -1,7 +1,8 @@
 from unittest.mock import AsyncMock
 
 import pytest
-from homeassistant.config_entries import SOURCE_USER\nfrom homeassistant.core import HomeAssistant
+from homeassistant.config_entries import SOURCE_USER
+from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 
 from custom_components.household_stock.const import (
