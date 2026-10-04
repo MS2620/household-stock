@@ -1,9 +1,20 @@
-import sys
+import importlib.util
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+MODELS_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "custom_components"
+    / "household_stock"
+    / "models.py"
+)
 
-from custom_components.household_stock.models import StockItem
+spec = importlib.util.spec_from_file_location("household_stock_models", MODELS_PATH)
+assert spec is not None
+assert spec.loader is not None
+models = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(models)
+
+StockItem = models.StockItem
 
 
 def test_low_stock_boundary() -> None:
