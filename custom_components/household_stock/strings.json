@@ -7,6 +7,25 @@
       }
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Add inventory item",
+        "description": "Add a new item directly to your Home Assistant inventory.",
+        "data": {
+          "name": "Name",
+          "category": "Category",
+          "unit": "Unit",
+          "quantity": "Quantity",
+          "low_stock_threshold": "Low-stock threshold",
+          "barcode": "Barcode",
+          "location": "Location",
+          "shopping_list_item": "Shopping list item",
+          "auto_add_to_shopping_list": "Automatically add to shopping list"
+        }
+      }
+    }
+  },
   "entity": {
     "sensor": {
       "items": { "name": "Items" }
