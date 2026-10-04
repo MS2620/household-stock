@@ -1,4 +1,5 @@
 import importlib.util
+import sys
 from pathlib import Path
 
 MODELS_PATH = (
@@ -12,6 +13,7 @@ spec = importlib.util.spec_from_file_location("household_stock_models", MODELS_P
 assert spec is not None
 assert spec.loader is not None
 models = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = models
 spec.loader.exec_module(models)
 
 StockItem = models.StockItem
