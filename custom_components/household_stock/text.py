@@ -90,7 +90,7 @@ class HouseholdStockText(TextEntity):
             await self.hass.services.async_call(
                 DOMAIN,
                 SERVICE_UPDATE_ITEM,
-                {"item_id": self.item_id, self.field: value or None},
+                {"item_id": self.item_id, self.field: value or ""},
                 blocking=True,
             )
 
