@@ -7,52 +7,47 @@
       }
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Add inventory item",
+        "description": "Add a new item directly to your Home Assistant inventory.",
+        "data": {
+          "name": "Name",
+          "category": "Category",
+          "unit": "Unit",
+          "quantity": "Quantity",
+          "low_stock_threshold": "Low-stock threshold",
+          "barcode": "Barcode",
+          "location": "Location",
+          "shopping_list_item": "Shopping list item",
+          "auto_add_to_shopping_list": "Automatically add to shopping list"
+        }
+      }
+    }
+  },
   "entity": {
     "sensor": {
-      "items": {
-        "name": "Items"
-      }
+      "items": { "name": "Items" }
     },
     "binary_sensor": {
-      "low_stock": {
-        "name": "Low stock"
-      }
+      "low_stock": { "name": "Low stock" }
     },
     "button": {
-      "consume": {
-        "name": "Consume"
-      },
-      "restock": {
-        "name": "Restock"
-      }
+      "consume": { "name": "Consume" },
+      "restock": { "name": "Restock" }
     },
     "number": {
-      "quantity": {
-        "name": "Quantity"
-      },
-      "threshold": {
-        "name": "Low stock threshold"
-      }
+      "quantity": { "name": "Quantity" },
+      "threshold": { "name": "Low stock threshold" }
     },
     "text": {
-      "name": {
-        "name": "Name"
-      },
-      "category": {
-        "name": "Category"
-      },
-      "unit": {
-        "name": "Unit"
-      },
-      "barcode": {
-        "name": "Barcode"
-      },
-      "location": {
-        "name": "Location"
-      },
-      "shopping_list_item": {
-        "name": "Shopping list item"
-      }
+      "name": { "name": "Name" },
+      "category": { "name": "Category" },
+      "unit": { "name": "Unit" },
+      "barcode": { "name": "Barcode" },
+      "location": { "name": "Location" },
+      "shopping_list_item": { "name": "Shopping list item" }
     }
   }
 }
