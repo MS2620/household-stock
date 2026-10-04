@@ -28,26 +28,163 @@
   },
   "entity": {
     "sensor": {
-      "items": { "name": "Items" }
+      "items": {
+        "name": "Items"
+      }
     },
     "binary_sensor": {
-      "low_stock": { "name": "Low stock" }
+      "low_stock": {
+        "name": "Low stock"
+      }
     },
     "button": {
-      "consume": { "name": "Consume" },
-      "restock": { "name": "Restock" }
+      "consume": {
+        "name": "Consume"
+      },
+      "restock": {
+        "name": "Restock"
+      }
     },
     "number": {
-      "quantity": { "name": "Quantity" },
-      "threshold": { "name": "Low stock threshold" }
+      "quantity": {
+        "name": "Quantity"
+      },
+      "threshold": {
+        "name": "Low stock threshold"
+      }
     },
     "text": {
-      "name": { "name": "Name" },
-      "category": { "name": "Category" },
-      "unit": { "name": "Unit" },
-      "barcode": { "name": "Barcode" },
-      "location": { "name": "Location" },
-      "shopping_list_item": { "name": "Shopping list item" }
+      "name": {
+        "name": "Name"
+      },
+      "category": {
+        "name": "Category"
+      },
+      "unit": {
+        "name": "Unit"
+      },
+      "barcode": {
+        "name": "Barcode"
+      },
+      "location": {
+        "name": "Location"
+      },
+      "shopping_list_item": {
+        "name": "Shopping list item"
+      }
+    }
+  },
+  "services": {
+    "add_item": {
+      "name": "Add item",
+      "description": "Add a new item to household inventory.",
+      "fields": {
+        "name": {
+          "name": "Name"
+        },
+        "category": {
+          "name": "Category"
+        },
+        "unit": {
+          "name": "Unit"
+        },
+        "quantity": {
+          "name": "Quantity"
+        },
+        "low_stock_threshold": {
+          "name": "Low-stock threshold"
+        },
+        "barcode": {
+          "name": "Barcode"
+        },
+        "location": {
+          "name": "Location"
+        },
+        "shopping_list_item": {
+          "name": "Shopping list item"
+        },
+        "auto_add_to_shopping_list": {
+          "name": "Automatically add to shopping list"
+        }
+      }
+    },
+    "consume_item": {
+      "name": "Consume item",
+      "description": "Decrease the quantity of an inventory item.",
+      "fields": {
+        "item_id": {
+          "name": "Item ID"
+        },
+        "quantity": {
+          "name": "Quantity"
+        }
+      }
+    },
+    "restock_item": {
+      "name": "Restock item",
+      "description": "Increase the quantity of an inventory item.",
+      "fields": {
+        "item_id": {
+          "name": "Item ID"
+        },
+        "quantity": {
+          "name": "Quantity"
+        }
+      }
+    },
+    "set_quantity": {
+      "name": "Set quantity",
+      "description": "Set an inventory item's current quantity.",
+      "fields": {
+        "item_id": {
+          "name": "Item ID"
+        },
+        "quantity": {
+          "name": "Quantity"
+        }
+      }
+    },
+    "update_item": {
+      "name": "Update item",
+      "description": "Update an inventory item's metadata.",
+      "fields": {
+        "item_id": {
+          "name": "Item ID"
+        },
+        "name": {
+          "name": "Name"
+        },
+        "category": {
+          "name": "Category"
+        },
+        "unit": {
+          "name": "Unit"
+        },
+        "low_stock_threshold": {
+          "name": "Low-stock threshold"
+        },
+        "barcode": {
+          "name": "Barcode"
+        },
+        "location": {
+          "name": "Location"
+        },
+        "shopping_list_item": {
+          "name": "Shopping list item"
+        },
+        "auto_add_to_shopping_list": {
+          "name": "Automatically add to shopping list"
+        }
+      }
+    },
+    "delete_item": {
+      "name": "Delete item",
+      "description": "Remove an inventory item.",
+      "fields": {
+        "item_id": {
+          "name": "Item ID"
+        }
+      }
     }
   }
 }
