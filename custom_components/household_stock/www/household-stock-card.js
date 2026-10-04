@@ -441,7 +441,8 @@ class HouseholdStockCard extends HTMLElement {
         <div class="actions">
           <button class="secondary" data-action="consume">−1</button>
           <button class="secondary" data-action="restock">+1</button>
-          ${item.lowStock ? '<button class="secondary" data-action="shopping">＋ Shopping</button>' : ""}\n          <button class="secondary" data-action="edit">${editing ? "Close" : "Edit"}</button>
+          ${item.lowStock ? '<button class="secondary" data-action="shopping">＋ Shopping</button>' : ""}
+          <button class="secondary" data-action="edit">${editing ? "Close" : "Edit"}</button>
           <button class="secondary danger" data-action="delete">Delete</button>
         </div>
         ${editing ? this._editForm(item) : ""}
