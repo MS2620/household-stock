@@ -1,7 +1,7 @@
 from unittest.mock import AsyncMock
 
 import pytest
-from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 
 from custom_components.household_stock.const import (
@@ -143,9 +143,8 @@ async def test_low_stock_shopping_list_transitions(hass: HomeAssistant) -> None:
         {ATTR_ITEM_ID: item_id, "quantity": 1},
         blocking=True,
     )
-    added.assert_awaited_once_with(
-        ServiceCall("shopping_list", "add_item", {"name": "Milk"})
-    )
+    added.assert_awaited_once()
+    assert added.await_args.args[0].data["name"] == "Milk"
 
     await hass.services.async_call(
         DOMAIN,
@@ -153,9 +152,8 @@ async def test_low_stock_shopping_list_transitions(hass: HomeAssistant) -> None:
         {ATTR_ITEM_ID: item_id, "quantity": 2},
         blocking=True,
     )
-    completed.assert_awaited_once_with(
-        ServiceCall("shopping_list", "complete_item", {"name": "Milk"})
-    )
+    completed.assert_awaited_once()
+    assert completed.await_args.args[0].data["name"] == "Milk"
 
 
 @pytest.mark.usefixtures("stock_entry")
