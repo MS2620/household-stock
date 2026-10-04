@@ -19,6 +19,7 @@ It provides:
 - Category, unit, barcode and location metadata
 - Automatic integration with Home Assistant's shopping list
 - Diagnostics
+- Add inventory items from the integration's Configure screen
 - Automated Python model tests and integration syntax validation
 
 ### Install for development
@@ -26,6 +27,10 @@ It provides:
 Copy the `custom_components/household_stock` directory into your Home Assistant `config/custom_components` directory, restart Home Assistant, then add **Household Stock** from **Settings → Devices & services → Add integration**.
 
 The integration does not require the Next.js application, PostgreSQL, Docker or an external API.
+
+### Add an inventory item
+
+After installing the integration, go to **Settings → Devices & services → Household Stock → Configure**. The Configure screen opens an **Add inventory item** form where you can enter the item name, category, unit, quantity, low-stock threshold, barcode, location and shopping-list settings. This creates the item immediately in Home Assistant.
 
 ### Inventory flow
 
