@@ -8,7 +8,7 @@ from custom_components.household_stock.const import DOMAIN
 
 
 @pytest_asyncio.fixture
-async def stock_entry(hass: HomeAssistant) -> MockConfigEntry:
+async def stock_entry(hass: HomeAssistant, enable_custom_integrations) -> MockConfigEntry:
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="Household Stock",
