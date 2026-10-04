@@ -19,9 +19,11 @@ class HouseholdStockCard extends HTMLElement {
       sort: "name",
       compact: false,
       group_by_category: false,
+      low_stock_only: false,
       ...config,
     };
     this._sort = this._config.sort || "name";
+    this._lowOnly = Boolean(this._config.low_stock_only);
     if (this._hass) this._render();
   }
 
@@ -76,6 +78,7 @@ class HouseholdStockCard extends HTMLElement {
         },
         { name: "compact", selector: { boolean: {} } },
         { name: "group_by_category", selector: { boolean: {} } },
+        { name: "low_stock_only", selector: { boolean: {} } },
       ],
     };
   }
