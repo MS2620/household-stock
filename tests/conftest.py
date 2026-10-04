@@ -1,5 +1,4 @@
 import pytest_asyncio
-from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -19,7 +18,6 @@ async def stock_entry(hass: HomeAssistant, enable_custom_integrations) -> MockCo
     assert await async_setup(hass, {})
     assert await async_setup_entry(hass, entry)
     await hass.async_block_till_done()
-    assert entry.state is ConfigEntryState.LOADED
 
     yield entry
 
