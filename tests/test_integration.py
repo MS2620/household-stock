@@ -202,6 +202,19 @@ async def test_item_sensor_name_is_not_duplicated(hass: HomeAssistant) -> None:
     quantity_states = [state for state in states if state.entity_id.startswith("sensor.")]
     assert len(quantity_states) == 1
     assert quantity_states[0].name == "Milk Quantity"
+    item_id = await _add_item(hass, "Butter")
+    await hass.services.async_call(
+        DOMAIN,
+        SERVICE_UPDATE_ITEM,
+        {ATTR_ITEM_ID: item_id, "name": "Salted Butter"},
+        blocking=True,
+    )
+    updated = [
+        state
+        for state in hass.states.async_all()
+        if state.attributes.get("item_id") == item_id
+    ]
+    assert updated[0].name == "Salted Butter Quantity"
 
 
 @pytest.mark.usefixtures("stock_entry")
