@@ -375,7 +375,7 @@ class HouseholdStockCard extends HTMLElement {
         const quantity = Number(data.get("quantity") || 0);
         for (const key of ["barcode", "location", "shopping_list_item"]) {
           const value = data.get(key);
-          changes[key] = value || null;
+          changes[key] = value || "";
         }
         await this._call("update_item", changes);
         await this._call("set_quantity", { item_id: itemId, quantity });
