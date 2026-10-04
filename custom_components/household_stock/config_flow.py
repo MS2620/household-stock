@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+
 import voluptuous as vol
 
 from homeassistant import config_entries
@@ -17,6 +19,8 @@ from .const import (
     DOMAIN,
     SERVICE_ADD_ITEM,
 )
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class HouseholdStockConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -42,24 +46,31 @@ class HouseholdStockConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 class HouseholdStockOptionsFlowHandler(config_entries.OptionsFlow):
     async def async_step_init(self, user_input=None):
+        errors: dict[str, str] = {}
+
         if user_input is not None:
-            await self.hass.services.async_call(
-                DOMAIN,
-                SERVICE_ADD_ITEM,
-                {
-                    ATTR_NAME: user_input[ATTR_NAME],
-                    ATTR_CATEGORY: user_input[ATTR_CATEGORY],
-                    ATTR_UNIT: user_input[ATTR_UNIT],
-                    ATTR_QUANTITY: user_input[ATTR_QUANTITY],
-                    ATTR_LOW_STOCK_THRESHOLD: user_input[ATTR_LOW_STOCK_THRESHOLD],
-                    ATTR_BARCODE: user_input.get(ATTR_BARCODE),
-                    ATTR_LOCATION: user_input.get(ATTR_LOCATION),
-                    "shopping_list_item": user_input.get("shopping_list_item"),
-                    ATTR_AUTO_ADD_TO_SHOPPING_LIST: user_input[ATTR_AUTO_ADD_TO_SHOPPING_LIST],
-                },
-                blocking=True,
-            )
-            return self.async_create_entry(data={})
+            try:
+                await self.hass.services.async_call(
+                    DOMAIN,
+                    SERVICE_ADD_ITEM,
+                    {
+                        ATTR_NAME: user_input[ATTR_NAME],
+                        ATTR_CATEGORY: user_input[ATTR_CATEGORY],
+                        ATTR_UNIT: user_input[ATTR_UNIT],
+                        ATTR_QUANTITY: user_input[ATTR_QUANTITY],
+                        ATTR_LOW_STOCK_THRESHOLD: user_input[ATTR_LOW_STOCK_THRESHOLD],
+                        ATTR_BARCODE: user_input.get(ATTR_BARCODE),
+                        ATTR_LOCATION: user_input.get(ATTR_LOCATION),
+                        "shopping_list_item": user_input.get("shopping_list_item"),
+                        ATTR_AUTO_ADD_TO_SHOPPING_LIST: user_input[ATTR_AUTO_ADD_TO_SHOPPING_LIST],
+                    },
+                    blocking=True,
+                )
+            except Exception:  # noqa: BLE001
+                _LOGGER.exception("Failed to add inventory item from options flow")
+                errors["base"] = "unknown"
+            else:
+                return self.async_create_entry(data={})
 
         return self.async_show_form(
             step_id="init",
@@ -82,4 +93,5 @@ class HouseholdStockOptionsFlowHandler(config_entries.OptionsFlow):
                     ): bool,
                 }
             ),
+            errors=errors,
         )
