@@ -24,6 +24,8 @@ jobs:
           python-version: "3.13"
       - name: Compile integration
         run: python -m compileall -q custom_components/household_stock
+      - name: Validate dashboard card
+        run: node --check custom_components/household_stock/www/household-stock-card.js
       - name: Install test dependencies
         run: python -m pip install pytest ruff
       - name: Static validation
