@@ -25,7 +25,7 @@ class HouseholdStockConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     @staticmethod
     @callback
     def async_get_options_flow(config_entry: config_entries.ConfigEntry):
-        return HouseholdStockOptionsFlowHandler(config_entry)
+        return HouseholdStockOptionsFlowHandler()
 
     async def async_step_user(self, user_input=None):
         await self.async_set_unique_id(DOMAIN)
@@ -41,9 +41,6 @@ class HouseholdStockConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 
 class HouseholdStockOptionsFlowHandler(config_entries.OptionsFlow):
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        self.config_entry = config_entry
-
     async def async_step_init(self, user_input=None):
         if user_input is not None:
             await self.hass.services.async_call(
@@ -62,7 +59,7 @@ class HouseholdStockOptionsFlowHandler(config_entries.OptionsFlow):
                 },
                 blocking=True,
             )
-            return self.async_create_entry(title="", data={})
+            return self.async_create_entry(data={})
 
         return self.async_show_form(
             step_id="init",
