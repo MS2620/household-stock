@@ -1,18 +1,11 @@
 name: Home Assistant integration
 
 on:
+  workflow_dispatch:
   pull_request:
-    paths:
-      - "custom_components/household_stock/**"
-      - "tests/**"
-      - ".github/workflows/home-assistant-integration.yml"
   push:
     branches:
       - home-assistant-integration
-    paths:
-      - "custom_components/household_stock/**"
-      - "tests/**"
-      - ".github/workflows/home-assistant-integration.yml"
 
 jobs:
   validate:
@@ -29,30 +22,6 @@ jobs:
       - name: Install test dependencies
         run: python -m pip install -r requirements_test.txt
       - name: Static validation
-        run: ruff check --select E9,F custom_components/household_stock
-      - name: Run model tests
-        run: PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 pytest -q --noconftest tests/test_models.py
-      - name: Integration test 1
-        run: pytest -q tests/test_integration.py::test_add_item_persists_defaults
-      - name: Integration test 2
-        run: pytest -q tests/test_integration.py::test_quantity_services_enforce_non_negative_quantity
-      - name: Integration test 3
-        run: pytest -q tests/test_integration.py::test_update_item_supports_clearing_optional_fields
-      - name: Integration test 4
-        run: pytest -q tests/test_integration.py::test_low_stock_shopping_list_transitions
-      - name: Integration test 5
-        run: pytest -q tests/test_integration.py::test_invalid_item_id_is_rejected
-      - name: Integration test 6
-        run: pytest -q tests/test_integration.py::test_delete_item_removes_item
-      - name: Integration test 7
-        run: pytest -q tests/test_integration.py::test_item_sensor_name_is_not_duplicated
-      - name: Integration test 8
-        run: pytest -q tests/test_integration.py::test_storage_survives_store_reload
-      - name: Integration test 9
-        run: pytest -q tests/test_integration.py::test_all_inventory_services_are_registered
-      - name: Integration test 10
-        run: pytest -q tests/test_integration.py::test_config_flow_creates_single_entry
-      - name: Integration test 11
-        run: pytest -q tests/test_integration.py::test_text_entity_can_clear_optional_metadata
-      - name: Integration test 12
-        run: pytest -q tests/test_integration.py::test_item_creates_all_native_entities
+        run: ruff check --select E9,F custom_components/household_stock tests
+      - name: Run tests
+        run: pytest -q
