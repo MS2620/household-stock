@@ -4,8 +4,10 @@ import pytest_asyncio
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.household_stock import async_setup, async_setup_entry, async_unload_entry
+from custom_components.household_stock import async_setup
 from custom_components.household_stock.const import DOMAIN
+from custom_components.household_stock.coordinator import HouseholdStockCoordinator
+from custom_components.household_stock.storage import HouseholdStockStore
 
 
 @pytest_asyncio.fixture
