@@ -197,110 +197,101 @@ class HouseholdStockCard extends HTMLElement {
 
     this.shadowRoot.innerHTML = `
       <style>
-        :host { display: block; }
-        ha-card { overflow: hidden; }
-        .header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 16px;
-          gap: 12px;
+        :host { display:block; }
+        ha-card { overflow:hidden; border-radius:var(--ha-card-border-radius, 12px); }
+        .hero {
+          position:relative;
+          padding:20px;
+          background:linear-gradient(135deg, color-mix(in srgb, var(--primary-color) 18%, var(--card-background-color)), var(--card-background-color));
+          border-bottom:1px solid var(--divider-color);
         }
-        .title { font-size: 20px; font-weight: 500; }
-        .summary { color: var(--secondary-text-color); font-size: 13px; margin-top: 4px; }
-        .toolbar {
-          display: grid;
-          grid-template-columns: minmax(140px, 1fr) auto auto auto;
-          gap: 8px;
-          padding: 0 16px 12px;
+        .hero-top { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+        .brand { display:flex; align-items:center; gap:12px; min-width:0; }
+        .brand-icon {
+          width:46px; height:46px; flex:0 0 46px; border-radius:14px;
+          display:grid; place-items:center;
+          background:var(--primary-color); color:var(--text-primary-color);
+          box-shadow:0 4px 12px color-mix(in srgb, var(--primary-color) 30%, transparent);
         }
-        input, select {
-          box-sizing: border-box;
-          width: 100%;
-          min-height: 40px;
-          padding: 8px 10px;
-          border: 1px solid var(--divider-color);
-          border-radius: 8px;
-          background: var(--card-background-color);
-          color: var(--primary-text-color);
-          font: inherit;
+        .brand-icon ha-icon { --mdc-icon-size:26px; }
+        .title { font-size:22px; font-weight:600; letter-spacing:-.01em; }
+        .summary { color:var(--secondary-text-color); font-size:13px; margin-top:3px; }
+        .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:16px; }
+        .stat { padding:10px 12px; border:1px solid var(--divider-color); border-radius:12px; background:color-mix(in srgb,var(--card-background-color) 82%,var(--primary-color)); }
+        .stat-value { font-size:20px; font-weight:600; line-height:1.1; }
+        .stat-label { margin-top:3px; color:var(--secondary-text-color); font-size:11px; text-transform:uppercase; letter-spacing:.05em; }
+        .stat.alert .stat-value { color:var(--error-color); }
+        .toolbar { display:grid; grid-template-columns:minmax(180px,1fr) 180px 150px auto; gap:8px; padding:14px 16px; background:var(--card-background-color); border-bottom:1px solid var(--divider-color); }
+        input,select { box-sizing:border-box; width:100%; min-height:40px; padding:8px 11px; border:1px solid var(--divider-color); border-radius:10px; background:var(--secondary-background-color); color:var(--primary-text-color); font:inherit; }
+        input:focus,select:focus { outline:2px solid color-mix(in srgb,var(--primary-color) 45%,transparent); outline-offset:1px; }
+        button { min-height:40px; border:0; border-radius:10px; padding:8px 14px; background:var(--primary-color); color:var(--text-primary-color); font:inherit; font-weight:500; cursor:pointer; transition:transform .12s ease,opacity .12s ease,background .12s ease; }
+        button:hover { opacity:.9; }
+        button:active { transform:scale(.98); }
+        button.secondary { background:var(--secondary-background-color); color:var(--primary-text-color); border:1px solid var(--divider-color); }
+        button.danger { color:var(--error-color); }
+        .filter-active { background:var(--primary-color)!important; color:var(--text-primary-color)!important; border-color:var(--primary-color)!important; }
+        .items { padding:4px 12px 12px; }
+        .category-heading { display:flex; align-items:center; gap:8px; padding:14px 6px 7px; color:var(--secondary-text-color); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; }
+        .category-heading::before { content:""; width:4px; height:14px; border-radius:4px; background:var(--primary-color); }
+        .item { position:relative; margin:6px 0; padding:13px 12px; border:1px solid var(--divider-color); border-radius:12px; background:var(--card-background-color); box-shadow:0 1px 2px rgba(0,0,0,.04); }
+        .item.low { border-color:color-mix(in srgb,var(--error-color) 45%,var(--divider-color)); background:color-mix(in srgb,var(--error-color) 4%,var(--card-background-color)); }
+        .row { display:flex; align-items:center; gap:10px; }
+        .item-name-wrap { display:flex; align-items:center; gap:8px; flex:1; min-width:0; }
+        .item-name { font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .status-dot { width:8px; height:8px; border-radius:50%; background:var(--success-color,#4caf50); flex:0 0 8px; }
+        .status-dot.low { background:var(--error-color); }
+        .quantity-control { display:flex; align-items:center; gap:4px; }
+        .quantity-input { width:64px; min-height:36px; padding:4px; text-align:center; font-variant-numeric:tabular-nums; }
+        .quantity-control .icon { width:36px; min-width:36px; padding:0; font-size:18px; }
+        .unit { color:var(--secondary-text-color); font-size:12px; white-space:nowrap; }
+        .meta { color:var(--secondary-text-color); font-size:12px; margin:7px 0 9px 16px; }
+        .actions { display:flex; gap:6px; flex-wrap:wrap; }
+        .actions button { min-width:44px; min-height:34px; padding:5px 10px; font-size:12px; }
+        .details { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; margin-top:12px; padding-top:12px; border-top:1px solid var(--divider-color); }
+        .details label,.form label { font-size:12px; color:var(--secondary-text-color); }
+        .details input,.form input { margin-top:4px; }
+        .form { margin:0 16px 14px; padding:14px; border:1px solid var(--divider-color); border-radius:12px; background:var(--secondary-background-color); }
+        .form-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:9px; }
+        .form-actions { display:flex; gap:8px; margin-top:12px; }
+        .empty { margin:12px 0; padding:34px 16px; text-align:center; border:1px dashed var(--divider-color); border-radius:12px; color:var(--secondary-text-color); }
+        .badge { display:inline-flex; align-items:center; margin-left:6px; padding:3px 7px; border-radius:999px; background:color-mix(in srgb,var(--error-color) 14%,transparent); color:var(--error-color); font-size:10px; font-weight:700; letter-spacing:.04em; }
+        @media (max-width:700px) {
+          .hero { padding:16px; }
+          .title { font-size:19px; }
+          .stats { gap:6px; }
+          .stat { padding:9px; }
+          .stat-value { font-size:18px; }
+          .toolbar { grid-template-columns:1fr 1fr; }
+          .toolbar .search { grid-column:1/-1; }
+          .toolbar #low-only { grid-column:1/-1; }
         }
-        .search { min-width: 0; }
-        .quantity-control { display: flex; align-items: center; gap: 4px; }
-        .quantity-input { width: 68px; min-height: 36px; padding: 4px; text-align: center; font-variant-numeric: tabular-nums; }
-        .unit { color: var(--secondary-text-color); font-size: 12px; white-space: nowrap; }
-        .filter-active { background: var(--primary-color) !important; color: var(--text-primary-color) !important; }
-        .category-heading { padding: 12px 8px 6px; color: var(--secondary-text-color); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
-        @media (max-width: 600px) { .toolbar { display: grid; grid-template-columns: 1fr 1fr; } .toolbar .search { grid-column: 1 / -1; } .actions button { flex: 1; } }
-        button {
-          min-height: 40px;
-          border: 0;
-          border-radius: 8px;
-          padding: 8px 12px;
-          background: var(--primary-color);
-          color: var(--text-primary-color);
-          font: inherit;
-          cursor: pointer;
-        }
-        button.secondary {
-          background: var(--secondary-background-color);
-          color: var(--primary-text-color);
-        }
-        button.danger { color: var(--error-color); }
-        .items { padding: 0 8px 8px; }
-        .item {
-          border-top: 1px solid var(--divider-color);
-          padding: 12px 8px;
-        }
-        .item.low { border-left: 4px solid var(--error-color); padding-left: 4px; }
-        .row { display: flex; align-items: center; gap: 8px; }
-        .item-name { flex: 1; font-weight: 500; }
-        .quantity { font-size: 18px; font-variant-numeric: tabular-nums; }
-        .meta { color: var(--secondary-text-color); font-size: 12px; margin: 4px 0 8px; }
-        .actions { display: flex; gap: 6px; flex-wrap: wrap; }
-        .actions button { min-width: 44px; padding: 6px 10px; min-height: 36px; }
-        .details {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-          gap: 8px;
-          margin-top: 10px;
-        }
-        .details label { font-size: 12px; color: var(--secondary-text-color); }
-        .details input { margin-top: 3px; }
-        .form {
-          margin: 0 16px 16px;
-          padding: 12px;
-          border: 1px solid var(--divider-color);
-          border-radius: 10px;
-          background: var(--secondary-background-color);
-        }
-        .form-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-          gap: 8px;
-        }
-        .form label { font-size: 12px; color: var(--secondary-text-color); }
-        .form input { margin-top: 3px; background: var(--card-background-color); }
-        .form-actions { display: flex; gap: 8px; margin-top: 10px; }
-        .empty { padding: 24px 16px; text-align: center; color: var(--secondary-text-color); }
-        .badge {
-          display: inline-block;
-          margin-left: 6px;
-          padding: 2px 6px;
-          border-radius: 999px;
-          background: var(--error-color);
-          color: var(--text-primary-color);
-          font-size: 11px;
-          font-weight: 500;
+        @media (max-width:480px) {
+          .hero-top { align-items:flex-start; }
+          .brand-icon { width:40px; height:40px; flex-basis:40px; }
+          .hero-top > button { padding:8px 10px; }
+          .quantity-control .icon { display:none; }
+          .quantity-input { width:58px; }
+          .actions button { flex:1; }
+          .meta { margin-left:0; }
         }
       </style>
-      <ha-card>
-        <div class="header">
-          <div>
-            <div class="title">${this._esc(this._config.title)}</div>
-            <div class="summary">${allItems.length} items · ${low} low · ${out} out of stock</div>
+
+        <div class="hero">
+          <div class="hero-top">
+            <div class="brand">
+              <div class="brand-icon"><ha-icon icon="mdi:package-variant-closed"></ha-icon></div>
+              <div>
+                <div class="title">${this._esc(this._config.title)}</div>
+                <div class="summary">Keep your household essentials organised</div>
+              </div>
+            </div>
+            <button id="add">＋ Add item</button>
           </div>
-          <button id="add">Add item</button>
+          <div class="stats">
+            <div class="stat"><div class="stat-value">${allItems.length}</div><div class="stat-label">Items</div></div>
+            <div class="stat ${low ? "alert" : ""}"><div class="stat-value">${low}</div><div class="stat-label">Low stock</div></div>
+            <div class="stat ${out ? "alert" : ""}"><div class="stat-value">${out}</div><div class="stat-label">Out of stock</div></div>
+          </div>
         </div>
         <div class="toolbar">
           <input class="search" id="search" placeholder="Search inventory" value="${this._esc(this._search)}" aria-label="Search inventory">
@@ -425,7 +416,7 @@ class HouseholdStockCard extends HTMLElement {
     return `
       <div class="item ${item.lowStock ? "low" : ""} ${compact ? "compact" : ""}" data-item-id="${this._esc(item.itemId)}">
         <div class="row">
-          <div class="item-name">${this._esc(item.name)}${lowBadge}</div>
+          <div class="item-name-wrap"><span class="status-dot ${item.lowStock ? "low" : ""}"></span><div class="item-name">${this._esc(item.name)}${lowBadge}</div></div>
           <div class="quantity-control">
             <button class="secondary icon" data-action="consume" title="Decrease quantity" aria-label="Decrease ${this._esc(item.name)}">−</button>
             <input class="quantity-input" data-action="quantity" type="number" min="0" step="any" value="${this._esc(item.quantity)}" aria-label="Quantity for ${this._esc(item.name)}">
