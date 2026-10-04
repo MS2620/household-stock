@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import voluptuous as vol
 
 from homeassistant.components.http import StaticPathConfig
@@ -33,7 +35,7 @@ from .storage import HouseholdStockStore
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     hass.data.setdefault(DOMAIN, {})
-    card_path = str(__import__("pathlib").Path(__file__).parent / "www" / "household-stock-card.js")
+    card_path = str(Path(__file__).parent / "www" / "household-stock-card.js")
     await hass.http.async_register_static_paths(
         [StaticPathConfig("/household_stock/household-stock-card.js", card_path, False)]
     )
