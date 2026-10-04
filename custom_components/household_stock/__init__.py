@@ -54,11 +54,6 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     data.setdefault("number_entity_callbacks", {})
     data.setdefault("text_entity_callbacks", {})
 
-    card_path = str(Path(__file__).parent / "www" / "household-stock-card.js")
-    await hass.http.async_register_static_paths(
-        [StaticPathConfig("/household_stock/household-stock-card.js", card_path, False)]
-    )
-
     async def sync_shopping_list(item: StockItem, was_low: bool) -> None:
         if not item.auto_add_to_shopping_list:
             return
@@ -276,6 +271,11 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    card_path = str(Path(__file__).parent / "www" / "household-stock-card.js")
+    await hass.http.async_register_static_paths(
+        [StaticPathConfig("/household_stock/household-stock-card.js", card_path, False)]
+    )
+
     store = HouseholdStockStore(hass)
     await store.async_load()
 
