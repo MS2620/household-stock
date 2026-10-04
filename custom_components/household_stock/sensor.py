@@ -110,7 +110,10 @@ class HouseholdStockItemSensor(HouseholdStockBaseSensor):
 
     @property
     def name(self) -> str:
-        return self.item.name if self.item else "Household Stock Item"
+        # The item name is already the device name. With has_entity_name=True,
+        # returning the item name here makes HA display "Milk Milk". Keep the
+        # entity name as "Quantity" so HA displays "Milk Quantity".
+        return "Quantity"
 
     @property
     def native_value(self) -> float | None:
