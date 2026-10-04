@@ -139,6 +139,20 @@ class HouseholdStockCard extends HTMLElement {
     });
   }
 
+  _allItems() {
+    const search = this._search;
+    const category = this._category;
+    const lowOnly = this._lowOnly;
+    this._search = "";
+    this._category = "all";
+    this._lowOnly = false;
+    const items = this._items();
+    this._search = search;
+    this._category = category;
+    this._lowOnly = lowOnly;
+    return items;
+  }
+
   _categories() {
     if (!this._hass) return [];
     return [
@@ -176,8 +190,10 @@ class HouseholdStockCard extends HTMLElement {
     if (!this._hass || !this._config) return;
 
     const items = this._items();
-    const low = items.filter((item) => item.lowStock).length;
-    const total = items.reduce((sum, item) => sum + item.quantity, 0);
+    const allItems = this._allItems();
+    const low = allItems.filter((item) => item.lowStock).length;
+    const out = allItems.filter((item) => item.quantity <= 0).length;
+    const total = allItems.reduce((sum, item) => sum + item.quantity, 0);
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -282,7 +298,7 @@ class HouseholdStockCard extends HTMLElement {
         <div class="header">
           <div>
             <div class="title">${this._esc(this._config.title)}</div>
-            <div class="summary">${items.length} items · ${total} total units · ${low} low stock</div>
+            <div class="summary">${allItems.length} items · ${low} low · ${out} out of stock</div>
           </div>
           <button id="add">Add item</button>
         </div>
@@ -425,7 +441,7 @@ class HouseholdStockCard extends HTMLElement {
         <div class="actions">
           <button class="secondary" data-action="consume">−1</button>
           <button class="secondary" data-action="restock">+1</button>
-          <button class="secondary" data-action="edit">${editing ? "Close" : "Edit"}</button>
+          ${item.lowStock ? '<button class="secondary" data-action="shopping">＋ Shopping</button>' : ""}\n          <button class="secondary" data-action="edit">${editing ? "Close" : "Edit"}</button>
           <button class="secondary danger" data-action="delete">Delete</button>
         </div>
         ${editing ? this._editForm(item) : ""}
@@ -471,7 +487,7 @@ class HouseholdStockCard extends HTMLElement {
             await this._call("consume_item", { item_id: itemId, quantity: 1 });
           } else if (action === "restock") {
             await this._call("restock_item", { item_id: itemId, quantity: 1 });
-          } else if (action === "delete") {
+          } else if (action === "shopping") {\n            await this._hass.callService("shopping_list", "add_item", { name: item.shoppingListItem || item.name });\n          } else if (action === "delete") {
             if (!window.confirm("Delete this inventory item?")) return;
             await this._call("delete_item", { item_id: itemId });
           } else if (action === "edit") {
