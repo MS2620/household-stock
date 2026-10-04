@@ -297,3 +297,14 @@ async def test_text_entity_can_clear_optional_metadata(hass: HomeAssistant) -> N
 
     coordinator = hass.data[DOMAIN][hass.data[DOMAIN]["entry_id"]]
     assert coordinator.data[item_id].barcode == ""
+
+
+@pytest.mark.usefixtures("stock_entry")
+async def test_item_creates_all_native_entities(hass: HomeAssistant) -> None:
+    await _add_item(hass, "Milk")
+
+    assert len(hass.states.async_all("sensor")) == 2
+    assert len(hass.states.async_all("binary_sensor")) == 1
+    assert len(hass.states.async_all("button")) == 2
+    assert len(hass.states.async_all("number")) == 2
+    assert len(hass.states.async_all("text")) == 6
