@@ -1,4 +1,5 @@
 import pytest
+import pytest_asyncio
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntryState
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -6,7 +7,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.household_stock.const import DOMAIN
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def stock_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
         domain=DOMAIN,
