@@ -1,0 +1,34 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Household Stock",
+        "description": "Create the Household Stock inventory stored by Home Assistant."
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "items": { "name": "Items" }
+    },
+    "binary_sensor": {
+      "low_stock": { "name": "Low stock" }
+    },
+    "button": {
+      "consume": { "name": "Consume" },
+      "restock": { "name": "Restock" }
+    },
+    "number": {
+      "quantity": { "name": "Quantity" },
+      "threshold": { "name": "Low stock threshold" }
+    },
+    "text": {
+      "name": { "name": "Name" },
+      "category": { "name": "Category" },
+      "unit": { "name": "Unit" },
+      "barcode": { "name": "Barcode" },
+      "location": { "name": "Location" },
+      "shopping_list_item": { "name": "Shopping list item" }
+    }
+  }
+}

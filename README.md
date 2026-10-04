@@ -1,3 +1,56 @@
+# Household Stock
+
+Household Stock started as a Next.js application for managing household inventory. The repository now also contains a native Home Assistant integration.
+
+## Home Assistant integration
+
+The native integration lives in `custom_components/household_stock` and stores inventory directly in Home Assistant.
+
+It provides:
+
+- Config-flow setup
+- Persistent inventory storage
+- A Home Assistant device for each stock item
+- Quantity sensor and editable quantity control
+- Editable low-stock threshold
+- Low-stock binary sensor
+- Consume and restock buttons
+- Add, update, consume, restock, set-quantity and delete services
+- Category, unit, barcode and location metadata
+- Automatic integration with Home Assistant's shopping list
+- Diagnostics
+- Automated Python model tests and integration syntax validation
+
+### Install for development
+
+Copy the `custom_components/household_stock` directory into your Home Assistant `config/custom_components` directory, restart Home Assistant, then add **Household Stock** from **Settings → Devices & services → Add integration**.
+
+The integration does not require the Next.js application, PostgreSQL, Docker or an external API.
+
+### Inventory flow
+
+```text
+Inventory
+   │
+   ├── Quantity
+   ├── Low-stock threshold
+   ├── Consume / Restock
+   └── Metadata
+          │
+          ▼
+     Low-stock state
+          │
+          ▼
+ Home Assistant Shopping List
+          │
+          ▼
+       Restocked
+```
+
+## Original web application
+
+The original web application remains in the repository for development and historical use.
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
@@ -14,23 +67,4 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Open http://localhost:3000 to view the application.
