@@ -7,6 +7,7 @@ class HouseholdStockCard extends HTMLElement {
     this._search = "";
     this._showAdd = false;
     this._editing = null;
+    this._renderScheduled = false;
   }
 
   setConfig(config) {
@@ -21,17 +22,25 @@ class HouseholdStockCard extends HTMLElement {
   set hass(hass) {
     this._hass = hass;
 
-    // Home Assistant can push state updates while the user is typing.
-    // Re-rendering here would recreate the form and reset the focused input.
-    const active = this.shadowRoot?.activeElement;
-    if (
-      active &&
-      ["INPUT", "TEXTAREA", "SELECT"].includes(active.tagName)
-    ) {
-      return;
-    }
+    // HA may update the card during the pointer/focus event that opened an
+    // input. Rendering synchronously here can replace the input before the
+    // browser finishes focusing it. Defer the render until the event settles,
+    // then leave the DOM alone while an input is actively being edited.
+    if (this._renderScheduled) return;
+    this._renderScheduled = true;
+    setTimeout(() => {
+      this._renderScheduled = false;
 
-    this._render();
+      const active = this.shadowRoot?.activeElement;
+      if (
+        active &&
+        ["INPUT", "TEXTAREA", "SELECT"].includes(active.tagName)
+      ) {
+        return;
+      }
+
+      this._render();
+    }, 0);
   }
 
   getCardSize() {
