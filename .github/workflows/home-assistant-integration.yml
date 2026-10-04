@@ -21,14 +21,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.13"
+          python-version: "3.14"
       - name: Compile integration
         run: python -m compileall -q custom_components/household_stock
       - name: Validate dashboard card
         run: node --check custom_components/household_stock/www/household-stock-card.js
       - name: Install test dependencies
-        run: python -m pip install pytest ruff
+        run: python -m pip install -r requirements_test.txt
       - name: Static validation
         run: ruff check --select E9,F custom_components/household_stock tests
-      - name: Run model tests
-        run: pytest -q tests/test_models.py
+      - name: Run tests
+        run: pytest -q
