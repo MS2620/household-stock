@@ -223,3 +223,16 @@ async def test_storage_survives_store_reload(hass: HomeAssistant) -> None:
     assert reloaded.items[item_id].name == "Pasta"
     assert reloaded.items[item_id].category == "Pantry"
     assert reloaded.items[item_id].quantity == 4
+
+
+@pytest.mark.usefixtures("stock_entry")
+async def test_all_inventory_services_are_registered(hass: HomeAssistant) -> None:
+    for service in (
+        SERVICE_ADD_ITEM,
+        SERVICE_CONSUME_ITEM,
+        SERVICE_RESTOCK_ITEM,
+        SERVICE_SET_QUANTITY,
+        SERVICE_UPDATE_ITEM,
+        SERVICE_DELETE_ITEM,
+    ):
+        assert hass.services.has_service(DOMAIN, service)
