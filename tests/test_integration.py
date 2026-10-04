@@ -20,7 +20,7 @@ async def _add_item(hass: HomeAssistant, name: str = "Milk", **kwargs) -> str:
     await hass.services.async_call(
         DOMAIN,
         SERVICE_ADD_ITEM,
-        {"name": name, **kwargs},
+        {"name": name, "auto_add_to_shopping_list": False, **kwargs},
         blocking=True,
     )
     coordinator = hass.data[DOMAIN][hass.data[DOMAIN]["entry_id"]]
@@ -135,6 +135,7 @@ async def test_low_stock_shopping_list_transitions(hass: HomeAssistant) -> None:
         quantity=3,
         low_stock_threshold=1,
         shopping_list_item="Milk",
+        auto_add_to_shopping_list=True,
     )
 
     await hass.services.async_call(
