@@ -22,10 +22,10 @@ class HouseholdStockCard extends HTMLElement {
   set hass(hass) {
     this._hass = hass;
 
-    // HA may update the card during the pointer/focus event that opened an
-    // input. Rendering synchronously here can replace the input before the
-    // browser finishes focusing it. Defer the render until the event settles,
-    // then leave the DOM alone while an input is actively being edited.
+    // Do not rebuild the DOM while the user has an add/edit form open.
+    // HA can update the card state while an input is focused; replacing the
+    // form in response would make the fields lose focus and become uneditable.
+    if (this._showAdd || this._editing) return;
     if (this._renderScheduled) return;
     this._renderScheduled = true;
     setTimeout(() => {
