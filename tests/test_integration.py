@@ -202,3 +202,24 @@ async def test_item_sensor_name_is_not_duplicated(hass: HomeAssistant) -> None:
     quantity_states = [state for state in states if state.entity_id.startswith("sensor.")]
     assert len(quantity_states) == 1
     assert quantity_states[0].name == "Milk Quantity"
+
+
+@pytest.mark.usefixtures("stock_entry")
+async def test_storage_survives_store_reload(hass: HomeAssistant) -> None:
+    item_id = await _add_item(
+        hass,
+        "Pasta",
+        category="Pantry",
+        unit="pack",
+        quantity=4,
+        low_stock_threshold=1,
+    )
+
+    from custom_components.household_stock.storage import HouseholdStockStore
+
+    reloaded = HouseholdStockStore(hass)
+    await reloaded.async_load()
+
+    assert reloaded.items[item_id].name == "Pasta"
+    assert reloaded.items[item_id].category == "Pantry"
+    assert reloaded.items[item_id].quantity == 4
