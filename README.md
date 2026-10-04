@@ -20,6 +20,7 @@ It provides:
 - Automatic integration with Home Assistant's shopping list
 - Diagnostics
 - Add inventory items from the integration's Configure screen
+- Native Household Stock Lovelace dashboard card for day-to-day inventory management
 - Automated Python model tests and integration syntax validation
 
 ### Install for development
@@ -31,6 +32,28 @@ The integration does not require the Next.js application, PostgreSQL, Docker or 
 ### Add an inventory item
 
 After installing the integration, go to **Settings → Devices & services → Household Stock → Configure**. The Configure screen opens an **Add inventory item** form where you can enter the item name, category, unit, quantity, low-stock threshold, barcode, location and shopping-list settings. This creates the item immediately in Home Assistant.
+
+### Household Stock dashboard card
+
+The integration includes a self-contained Lovelace card at:
+
+```text
+/household_stock/household-stock-card.js
+```
+
+After installing or updating the integration and restarting Home Assistant:
+
+1. Go to **Settings → Dashboards → Resources**.
+2. Add `/household_stock/household-stock-card.js` as a **JavaScript Module** resource.
+3. Add a card to a dashboard and choose **Household Stock** from the custom card picker, or use:
+
+```yaml
+type: custom:household-stock-card
+title: Household Stock
+sort: name
+```
+
+The card supports searching, adding items, consuming/restocking by one unit, editing item metadata and quantity, and deleting items. It talks directly to the Home Assistant `household_stock` services; the Next.js application is not involved.
 
 ### Inventory flow
 
