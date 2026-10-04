@@ -488,7 +488,9 @@ class HouseholdStockCard extends HTMLElement {
             await this._call("consume_item", { item_id: itemId, quantity: 1 });
           } else if (action === "restock") {
             await this._call("restock_item", { item_id: itemId, quantity: 1 });
-          } else if (action === "shopping") {\n            await this._hass.callService("shopping_list", "add_item", { name: item.shoppingListItem || item.name });\n          } else if (action === "delete") {
+          } else if (action === "shopping") {
+            await this._hass.callService("shopping_list", "add_item", { name: item.shoppingListItem || item.name });
+          } else if (action === "delete") {
             if (!window.confirm("Delete this inventory item?")) return;
             await this._call("delete_item", { item_id: itemId });
           } else if (action === "edit") {
