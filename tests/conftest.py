@@ -1,14 +1,21 @@
+import sys
+from pathlib import Path
+
 import pytest_asyncio
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+# Make the repository root importable when pytest is invoked from CI.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from custom_components.household_stock import async_setup_entry, async_unload_entry
 from custom_components.household_stock.const import DOMAIN
-from custom_components.household_stock.coordinator import HouseholdStockCoordinator
-from custom_components.household_stock.storage import HouseholdStockStore
 
 
 @pytest_asyncio.fixture
-async def stock_entry(hass: HomeAssistant) -> MockConfigEntry:
+async def stock_entry(
+    hass: HomeAssistant, enable_custom_integrations
+) -> MockConfigEntry:
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="Household Stock",
