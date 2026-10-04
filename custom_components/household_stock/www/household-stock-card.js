@@ -20,6 +20,17 @@ class HouseholdStockCard extends HTMLElement {
 
   set hass(hass) {
     this._hass = hass;
+
+    // Home Assistant can push state updates while the user is typing.
+    // Re-rendering here would recreate the form and reset the focused input.
+    const active = this.shadowRoot?.activeElement;
+    if (
+      active &&
+      ["INPUT", "TEXTAREA", "SELECT"].includes(active.tagName)
+    ) {
+      return;
+    }
+
     this._render();
   }
 
