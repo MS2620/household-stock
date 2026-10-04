@@ -31,6 +31,6 @@ jobs:
       - name: Static validation
         run: ruff check --select E9,F custom_components/household_stock
       - name: Run model tests
-        run: pytest -q --noconftest tests/test_models.py
+        run: PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 pytest -q --noconftest tests/test_models.py
       - name: Run integration tests
         run: pytest -q tests/test_integration.py
