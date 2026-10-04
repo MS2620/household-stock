@@ -27,8 +27,18 @@ async def _add_item(hass: HomeAssistant, name: str = "Milk", **kwargs) -> str:
     return next(item_id for item_id, item in coordinator.data.items() if item.name == name)
 
 
-async def test_add_item_persists_defaults() -> None:
-    assert True
+@pytest.mark.usefixtures("stock_entry")
+async def test_add_item_persists_defaults(hass: HomeAssistant) -> None:
+    item_id = await _add_item(hass, "Milk")
+    coordinator = hass.data[DOMAIN][hass.data[DOMAIN]["entry_id"]]
+    item = coordinator.data[item_id]
+
+    assert item.name == "Milk"
+    assert item.category == "Other"
+    assert item.unit == "item"
+    assert item.quantity == 0
+    assert item.low_stock_threshold == 1
+    assert item.is_low_stock
 
 
 @pytest.mark.usefixtures("stock_entry")
