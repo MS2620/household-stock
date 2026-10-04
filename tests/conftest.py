@@ -24,7 +24,6 @@ async def stock_entry(hass: HomeAssistant) -> MockConfigEntry:
     else:
         hass.http.async_register_static_paths = AsyncMock()
 
-    assert await async_setup(hass, {})
     assert await async_setup_entry(hass, entry)
     await hass.async_block_till_done()
 
