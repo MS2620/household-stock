@@ -272,3 +272,28 @@ async def test_config_flow_creates_single_entry(hass: HomeAssistant, enable_cust
     )
     assert result["type"] == "abort"
     assert result["reason"] == "already_configured"
+
+
+@pytest.mark.usefixtures("stock_entry")
+async def test_text_entity_can_clear_optional_metadata(hass: HomeAssistant) -> None:
+    item_id = await _add_item(hass, "Eggs", barcode="999")
+
+    barcode_states = [
+        state
+        for state in hass.states.async_all()
+        if state.entity_id.startswith("text.")
+        and state.attributes.get("item_id") == item_id
+        and state.attributes.get("friendly_name", "").endswith("Barcode")
+    ]
+    assert len(barcode_states) == 1
+
+    await hass.services.async_call(
+        "text",
+        "set_value",
+        {"entity_id": barcode_states[0].entity_id, "value": ""},
+        blocking=True,
+    )
+    await hass.async_block_till_done()
+
+    coordinator = hass.data[DOMAIN][hass.data[DOMAIN]["entry_id"]]
+    assert coordinator.data[item_id].barcode == ""
