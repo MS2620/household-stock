@@ -1,3 +1,4 @@
+from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 import pytest_asyncio
@@ -18,7 +19,10 @@ async def stock_entry(hass: HomeAssistant) -> MockConfigEntry:
         data={},
     )
     entry.add_to_hass(hass)
-    hass.http.async_register_static_paths = AsyncMock()
+    if hass.http is None:
+        hass.http = SimpleNamespace(async_register_static_paths=AsyncMock())
+    else:
+        hass.http.async_register_static_paths = AsyncMock()
 
     assert await async_setup(hass, {})
     assert await async_setup_entry(hass, entry)
