@@ -141,7 +141,17 @@ class HouseholdStockCard extends HTMLElement {
 
   _categories() {
     if (!this._hass) return [];
-    return [...new Set(this._allItems().map((item) => item.category))].sort((a, b) => a.localeCompare(b));
+    return [
+      ...new Set(
+        Object.values(this._hass.states)
+          .filter(
+            (state) =>
+              state.entity_id.startsWith("sensor.") &&
+              state.attributes?.item_id
+          )
+          .map((state) => state.attributes.category || "Other")
+      ),
+    ].sort((a, b) => a.localeCompare(b));
   }
 
   _formatQuantity(value) {
