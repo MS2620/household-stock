@@ -1,0 +1,126 @@
+add_item:
+  name: Add item
+  description: Add a new item to household inventory.
+  fields:
+    name:
+      required: true
+      selector:
+        text:
+    category:
+      selector:
+        text:
+    unit:
+      selector:
+        text:
+    quantity:
+      selector:
+        number:
+          min: 0
+          step: 0.1
+    low_stock_threshold:
+      selector:
+        number:
+          min: 0
+          step: 0.1
+    barcode:
+      selector:
+        text:
+    location:
+      selector:
+        text:
+    shopping_list_item:
+      description: Name to use in the Home Assistant shopping list. Defaults to the inventory name.
+      selector:
+        text:
+    auto_add_to_shopping_list:
+      description: Automatically add the item when it crosses into low stock.
+      default: true
+      selector:
+        boolean:
+
+consume_item:
+  name: Consume item
+  description: Decrease the quantity of an inventory item.
+  fields:
+    item_id:
+      required: true
+      selector:
+        text:
+    quantity:
+      selector:
+        number:
+          min: 0.1
+          step: 0.1
+
+restock_item:
+  name: Restock item
+  description: Increase the quantity of an inventory item.
+  fields:
+    item_id:
+      required: true
+      selector:
+        text:
+    quantity:
+      selector:
+        number:
+          min: 0.1
+          step: 0.1
+
+set_quantity:
+  name: Set quantity
+  description: Set an inventory item's current quantity.
+  fields:
+    item_id:
+      required: true
+      selector:
+        text:
+    quantity:
+      required: true
+      selector:
+        number:
+          min: 0
+          step: 0.1
+
+update_item:
+  name: Update item
+  description: Update an inventory item's metadata.
+  fields:
+    item_id:
+      required: true
+      selector:
+        text:
+    name:
+      selector:
+        text:
+    category:
+      selector:
+        text:
+    unit:
+      selector:
+        text:
+    low_stock_threshold:
+      selector:
+        number:
+          min: 0
+          step: 0.1
+    barcode:
+      selector:
+        text:
+    location:
+      selector:
+        text:
+    shopping_list_item:
+      selector:
+        text:
+    auto_add_to_shopping_list:
+      selector:
+        boolean:
+
+delete_item:
+  name: Delete item
+  description: Remove an inventory item.
+  fields:
+    item_id:
+      required: true
+      selector:
+        text:

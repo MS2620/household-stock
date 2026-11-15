@@ -1,36 +1,92 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Household Stock
 
-## Getting Started
+A native Home Assistant integration for managing household inventory.
 
-First, run the development server:
+## Home Assistant integration
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+The integration lives in `custom_components/household_stock` and stores inventory directly in Home Assistant.
+
+It provides:
+
+- Config-flow setup
+- Persistent inventory storage
+- A Home Assistant device for each stock item
+- Quantity sensor and editable quantity control
+- Editable low-stock threshold
+- Low-stock binary sensor
+- Consume and restock buttons
+- Add, update, consume, restock, set-quantity and delete services
+- Category, unit, barcode and location metadata
+- Automatic integration with Home Assistant's shopping list
+- Diagnostics
+- Add inventory items from the integration's Configure screen
+- Native Household Stock Lovelace dashboard card
+- Automated Home Assistant integration tests, model tests and Python/JavaScript validation
+
+### Install for development
+
+Copy the `custom_components/household_stock` directory into your Home Assistant `config/custom_components` directory, restart Home Assistant, then add **Household Stock** from **Settings → Devices & services → Add integration**.
+
+The integration is self-contained. It does not require PostgreSQL, Docker, Node.js, or an external API.
+
+### Add an inventory item
+
+Go to **Settings → Devices & services → Household Stock → Configure**. The Configure screen opens an **Add inventory item** form where you can enter the item name, category, unit, quantity, low-stock threshold, barcode, location and shopping-list settings.
+
+### Household Stock dashboard card
+
+The integration includes a self-contained Lovelace card at:
+
+```text
+/household_stock/household-stock-card.js
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+After installing or updating the integration and restarting Home Assistant:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Go to **Settings → Dashboards → Resources**.
+2. Add `/household_stock/household-stock-card.js` as a **JavaScript Module** resource.
+3. Add a card to a dashboard and choose **Household Stock** from the custom card picker, or use:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```yaml
+type: custom:household-stock-card
+title: Household Stock
+sort: name
+```
 
-## Learn More
+The card supports searching, adding items, consuming/restocking by one unit, editing item metadata and quantity, and deleting items. It talks directly to Home Assistant services.
 
-To learn more about Next.js, take a look at the following resources:
+### Development tests
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Install the test dependencies with:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+python -m pip install -r requirements_test.txt
+```
 
-## Deploy on Vercel
+Run the complete test suite:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+pytest -q
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The CI workflow runs the same test suite, plus Python compilation, Ruff static validation and JavaScript syntax validation.
+
+### Inventory flow
+
+```text
+Inventory
+   │
+   ├── Quantity
+   ├── Low-stock threshold
+   ├── Consume / Restock
+   └── Metadata
+          │
+          ▼
+     Low-stock state
+          │
+          ▼
+ Home Assistant Shopping List
+          │
+          ▼
+       Restocked
+```

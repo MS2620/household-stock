@@ -1,0 +1,55 @@
+title: Household Stock
+views:
+  - title: Home
+    path: household-stock
+    icon: mdi:package-variant-closed
+    type: sections
+    max_columns: 3
+    sections:
+      - title: Overview
+        cards:
+          - type: markdown
+            content: |
+              # 📦 Household Stock
+              ### Everything you need, at a glance
+              Keep track of everyday essentials, spot low stock quickly, and add items to your shopping list without leaving Home Assistant.
+          - type: tile
+            entity: sensor.household_stock_items
+            name: Inventory
+            icon: mdi:package-variant-closed
+            features_position: bottom
+            vertical: false
+
+      - title: Needs attention
+        cards:
+          - type: custom:household-stock-card
+            title: Needs attention
+            low_stock_only: true
+            group_by_category: true
+            compact: true
+            sort: low_stock
+
+      - title: Inventory
+        cards:
+          - type: custom:household-stock-card
+            title: All inventory
+            group_by_category: true
+            sort: name
+
+      - title: Shopping
+        cards:
+          - type: todo-list
+            entity: todo.shopping_list
+            title: Shopping list
+
+      - title: Quick access
+        cards:
+          - type: tile
+            entity: sensor.household_stock_items
+            name: Total items
+            icon: mdi:counter
+          - type: markdown
+            content: |
+              **Tip**
+
+              Use **Needs attention** for a quick restock pass, or use **All inventory** when you want to search, edit, or update quantities.

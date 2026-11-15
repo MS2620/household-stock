@@ -1,0 +1,17 @@
+{
+  "domain": "household_stock",
+  "name": "Household Stock",
+  "version": "0.1.0",
+  "documentation": "https://github.com/MS2620/household-stock",
+  "codeowners": [
+    "@MS2620"
+  ],
+  "config_flow": true,
+  "single_config_entry": true,
+  "iot_class": "local_push",
+  "requirements": [],
+  "integration_type": "hub",
+  "dependencies": [
+    "http"
+  ]
+}
